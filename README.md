@@ -2,5 +2,7 @@
 
 ### Members
 Wei Siew Liew
+Colin Liechty
 Trae Hillstead
+
 
