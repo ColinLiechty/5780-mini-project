@@ -3,14 +3,9 @@
 #include "hal_usart.h"
 
 void control_LED(char led_sel);
-void led_repl_iteration(void);
 
 #define TEST_UART_SERIAL 0
-#define BUF_SIZE         50
-
-char buf[BUF_SIZE];
-uint8_t head_idx;
-uint8_t tail_idx;
+#define TEST_BT_CONNECT  1
 
 void inc_tail_idx(void)
 {
@@ -79,13 +74,13 @@ int bt_conf_main(void) {
     NVIC_EnableIRQ(USART1_IRQn);
     NVIC_SetPriority(USART1_IRQn, 1);
 
-    // head_idx = 0;
-    // tail_idx = 0;
-
     while (1) {
 #if (TEST_UART_SERIAL == 1)
         led_select = USART_recv_byte(USART3);
         control_LED(led_select);
+#elif (TEST_BT_CONNECT == 1)
+        HAL_Delay(100);
+        USART_send_byte(USART1, 'r');
 #endif
     } 
 
@@ -94,7 +89,7 @@ int bt_conf_main(void) {
 
 void control_LED(char led_sel)
 {
-    char* error_msg = "ERROR: Invalid character.\r\n";
+    // char* error_msg = "ERROR: Invalid character.\r\n";
     switch (led_sel) {
         case 'r':
             HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_6);
@@ -110,76 +105,19 @@ void control_LED(char led_sel)
             break;
         default:
             // Send error
-            USART_send_string(USART3, error_msg);
+            // USART_send_string(USART3, error_msg);
             break;
     }
-}
-
-void forward_messages(void)
-{
-  // char* prompt = "CMD?\r\n";
-  // USART_send_string(USART3, prompt);
-  // while (head_idx == tail_idx);
-  // inc_tail_idx();
-  // USART_send_byte(buf[tail_idx]);
-}
-
-void led_repl_iteration(void)
-{
-    // Single iteration of a repl within the while(1)
-    char* prompt = "CMD?\r\n";
-    char* error_msg = "ERROR: Invalid character.\r\n";
-    char recv_cmd[4] = {'x', 'x', '\n', '\0'};
-    USART_send_string(USART3, prompt);
-    // Wait for color
-    while (head_idx == tail_idx);
-    inc_tail_idx();
-    recv_cmd[0] = buf[tail_idx];
-    uint32_t pin_num = 0;
-    switch (recv_cmd[0]) {
-        case 'r':
-            pin_num = GPIO_PIN_6;
-            break;
-        case 'b':
-            pin_num = GPIO_PIN_7;
-            break;
-        case 'g':
-            pin_num = GPIO_PIN_9;
-            break;
-        case 'o':
-            pin_num = GPIO_PIN_8;
-            break;
-        default:
-            // Send error
-            USART_send_string(USART3, error_msg);
-            return;
-    }
-    // Wait for op
-    while (head_idx == tail_idx);
-    inc_tail_idx();
-    recv_cmd[1] = buf[tail_idx];
-    switch (recv_cmd[1]) {
-        case '0':
-            HAL_GPIO_WritePin(GPIOC, pin_num, GPIO_PIN_RESET);
-            break;
-        case '1':
-            HAL_GPIO_WritePin(GPIOC, pin_num, GPIO_PIN_SET);
-            break;
-        case '2':
-            HAL_GPIO_TogglePin(GPIOC, pin_num);
-            break;
-        default:
-            USART_send_string(USART3, error_msg);
-            return;
-    }
-    // Print cmd
-    USART_send_string(USART3, recv_cmd);
 }
 
 void USART3_4_IRQHandler(void)
 {
-    char c = (char) USART3->RDR;
-    USART_send_byte(USART1, c);
+  char c = (char) USART3->RDR;
+#if (TEST_BT_CONNECT == 1)
+  control_LED(c);
+#else
+  USART_send_byte(USART1, c);
+#endif
 }
 
 void USART1_IRQHandler(void)
