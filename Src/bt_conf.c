@@ -117,11 +117,11 @@ void control_LED(char led_sel)
 
 void forward_messages(void)
 {
-  char* prompt = "CMD?\r\n";
-  USART_send_string(USART3, prompt);
-  while (head_idx == tail_idx);
-  inc_tail_idx();
-  USART_send_byte(buf[tail_idx]);
+  // char* prompt = "CMD?\r\n";
+  // USART_send_string(USART3, prompt);
+  // while (head_idx == tail_idx);
+  // inc_tail_idx();
+  // USART_send_byte(buf[tail_idx]);
 }
 
 void led_repl_iteration(void)
