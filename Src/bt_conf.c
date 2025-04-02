@@ -6,7 +6,7 @@ void control_LED(char led_sel);
 void led_repl_iteration(void);
 
 #define TEST_UART_SERIAL 1
-#define BUF_SIZE         8
+#define BUF_SIZE         10
 
 char buf[BUF_SIZE];
 uint8_t head_idx;
@@ -74,8 +74,10 @@ int bt_conf_main(void) {
     char led_select = 0;
 #endif
     // Set up NVIC
-    // NVIC_EnableIRQ(USART3_4_IRQn);
-    // NVIC_SetPriority(USART3_4_IRQn, 1);
+    NVIC_EnableIRQ(USART3_4_IRQn);
+    NVIC_SetPriority(USART3_4_IRQn, 1);
+    NVIC_EnableIRQ(USART1_IRQn);
+    NVIC_SetPriority(USART1_IRQn, 1);
 
     // head_idx = 0;
     // tail_idx = 0;
@@ -111,6 +113,15 @@ void control_LED(char led_sel)
             USART_send_string(USART3, error_msg);
             break;
     }
+}
+
+void forward_messages(void)
+{
+  char* prompt = "CMD?\r\n";
+  USART_send_string(USART3, prompt);
+  while (head_idx == tail_idx);
+  inc_tail_idx();
+  USART_send_byte(buf[tail_idx]);
 }
 
 void led_repl_iteration(void)
@@ -167,14 +178,18 @@ void led_repl_iteration(void)
 
 void USART3_4_IRQHandler(void)
 {
-    ++head_idx;
-    if (head_idx == BUF_SIZE) {
-        head_idx = 0;
-    }
-    buf[head_idx] = (char) USART3->RDR;
+    // ++head_idx;
+    // if (head_idx == BUF_SIZE) {
+    //     head_idx = 0;
+    // }
+    // buf[head_idx] = (char) USART3->RDR;
+    char c = (char) USART3->RDR;
+    USART_send_byte(USART1, c);
 }
 
 void USART1_IRQHandler(void)
 {
   // IRQ handler to receive from bluetooth device
+  char c = (char) USART1->RDR;
+  USART_send_byte(USART3, c);
 }
