@@ -25,6 +25,8 @@ int bt_conf_main(void) {
     // USART3 (to terminal)
 #if (TEST_UART_SERIAL == 1)
     configure_TTL(USART3, HAL_RCC_GetHCLKFreq()/115200);
+#elif (TEST_BT_CONNECT == 1)
+configure_TTL(USART3, HAL_RCC_GetHCLKFreq()/38400);
 #else
     // Use interrupts
     configure_TTL_RXint(USART3, HAL_RCC_GetHCLKFreq()/115200);
