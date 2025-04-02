@@ -5,8 +5,8 @@
 void control_LED(char led_sel);
 void led_repl_iteration(void);
 
-#define TEST_UART_SERIAL 1
-#define BUF_SIZE         10
+#define TEST_UART_SERIAL 0
+#define BUF_SIZE         50
 
 char buf[BUF_SIZE];
 uint8_t head_idx;
@@ -33,7 +33,7 @@ int bt_conf_main(void) {
     HAL_RCC_USART3_CLK_ENABLE();
 
     // USART1 (to bluetooth)
-    configure_TTL_RXint(USART1, HAL_RCC_GetHCLKFreq()/38400);
+    configure_TTL_RXint(USART1, HAL_RCC_GetHCLKFreq()/9600);
 
     // USART3 (to terminal)
 #if (TEST_UART_SERIAL == 1)
@@ -178,11 +178,6 @@ void led_repl_iteration(void)
 
 void USART3_4_IRQHandler(void)
 {
-    // ++head_idx;
-    // if (head_idx == BUF_SIZE) {
-    //     head_idx = 0;
-    // }
-    // buf[head_idx] = (char) USART3->RDR;
     char c = (char) USART3->RDR;
     USART_send_byte(USART1, c);
 }
