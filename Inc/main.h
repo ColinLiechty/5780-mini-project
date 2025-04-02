@@ -16,4 +16,4 @@ void HAL_RCC_ADC1_CLK_ENABLE(void);
 
 void HAL_config_EXTI(uint32_t line_num, uint32_t control);
 
-void configure_ADC_lab6(ADC_TypeDef* ADCx);
+int bt_conf_main(void);
