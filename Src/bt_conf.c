@@ -20,7 +20,7 @@ void inc_tail_idx(void)
     }
 }
 
-int lab4_main(void) {
+int bt_conf_main(void) {
     HAL_Init();
     SystemClock_Config();
 
