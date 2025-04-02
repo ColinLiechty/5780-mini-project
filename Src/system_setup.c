@@ -145,3 +145,8 @@ void HAL_RCC_ADC1_CLK_ENABLE(void)
 {
   RCC->APB2ENR |= (1 << 9);
 }
+
+void HAL_RCC_USART1_CLK_ENABLE(void)
+{
+  RCC->APB2ENR |= (1 << 14);
+}
