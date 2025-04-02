@@ -7,14 +7,6 @@ void control_LED(char led_sel);
 #define TEST_UART_SERIAL 0
 #define TEST_BT_CONNECT  1
 
-void inc_tail_idx(void)
-{
-    ++tail_idx;
-    if (tail_idx == BUF_SIZE) {
-        tail_idx = 0;
-    }
-}
-
 int bt_conf_main(void) {
     HAL_Init();
     SystemClock_Config();
@@ -28,7 +20,7 @@ int bt_conf_main(void) {
     HAL_RCC_USART3_CLK_ENABLE();
 
     // USART1 (to bluetooth)
-    configure_TTL_RXint(USART1, HAL_RCC_GetHCLKFreq()/9600);
+    configure_TTL_RXint(USART1, HAL_RCC_GetHCLKFreq()/38400);
 
     // USART3 (to terminal)
 #if (TEST_UART_SERIAL == 1)
