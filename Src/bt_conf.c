@@ -20,13 +20,17 @@ int bt_conf_main(void) {
     HAL_RCC_USART3_CLK_ENABLE();
 
     // USART1 (to bluetooth)
+#if (TEST_BT_CONNECT)
+    configure_TTL_RXint(USART1, HAL_RCC_GetHCLKFreq()/9600);
+#else
     configure_TTL_RXint(USART1, HAL_RCC_GetHCLKFreq()/38400);
+#endif
 
     // USART3 (to terminal)
 #if (TEST_UART_SERIAL == 1)
     configure_TTL(USART3, HAL_RCC_GetHCLKFreq()/115200);
 #elif (TEST_BT_CONNECT == 1)
-    configure_TTL_RXint(USART3, HAL_RCC_GetHCLKFreq()/38400);
+    configure_TTL_RXint(USART3, HAL_RCC_GetHCLKFreq()/9600);
 #else
     // Use interrupts
     configure_TTL_RXint(USART3, HAL_RCC_GetHCLKFreq()/115200);
