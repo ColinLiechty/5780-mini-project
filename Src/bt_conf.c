@@ -21,9 +21,7 @@ int bt_conf_main(void) {
 
     // USART1 (to bluetooth)
 #if (TEST_BT_CONNECT)
-    configure_TTL_RXint(USART1, HAL_RCC_GetHCLKFreq()/9600);
-#else
-    configure_TTL_RXint(USART1, HAL_RCC_GetHCLKFreq()/38400);
+    configure_TTL(USART1, HAL_RCC_GetHCLKFreq()/9600);
 #endif
 
     // USART3 (to terminal)
@@ -31,9 +29,6 @@ int bt_conf_main(void) {
     configure_TTL(USART3, HAL_RCC_GetHCLKFreq()/115200);
 #elif (TEST_BT_CONNECT == 1)
     configure_TTL_RXint(USART3, HAL_RCC_GetHCLKFreq()/9600);
-#else
-    // Use interrupts
-    configure_TTL_RXint(USART3, HAL_RCC_GetHCLKFreq()/115200);
 #endif
 
     // USART3 TX Pin (connect to RX of serial converter)
@@ -69,8 +64,6 @@ int bt_conf_main(void) {
     // Set up NVIC
     NVIC_EnableIRQ(USART3_4_IRQn);
     NVIC_SetPriority(USART3_4_IRQn, 1);
-    NVIC_EnableIRQ(USART1_IRQn);
-    NVIC_SetPriority(USART1_IRQn, 1);
 
     while (1) {
 #if (TEST_UART_SERIAL == 1)
@@ -113,14 +106,6 @@ void USART3_4_IRQHandler(void)
   char c = (char) USART3->RDR;
 #if (TEST_BT_CONNECT == 1)
   control_LED(c);
-#else
-  USART_send_byte(USART1, c);
 #endif
 }
 
-void USART1_IRQHandler(void)
-{
-  // IRQ handler to receive from bluetooth device
-  char c = (char) USART1->RDR;
-  USART_send_byte(USART3, c);
-}
