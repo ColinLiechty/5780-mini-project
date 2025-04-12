@@ -85,15 +85,15 @@ int magnetic_encoder_main(void)
 
     USART_send_string(USART3,"checkpoint 1");
 
-    while ((I2C2->ISR & I2C_ISR_TXIS) == 0) {
-        if (I2C2->ISR & I2C_ISR_NACKF) {
-            USART_send_string(USART3, "NACK on TXIS\n");
-            return;
-        }
-    }
+    // while ((I2C2->ISR & I2C_ISR_TXIS) == 0) {
+    //     if (I2C2->ISR & I2C_ISR_NACKF) {
+    //         USART_send_string(USART3, "NACK on TXIS\n");
+    //         return;
+    //     }
+    // }
     
 
-    USART_send_string(USART3,"checkpoint 2");
+    // USART_send_string(USART3,"checkpoint 2");
 
     I2C_Write(0x0B);
 
@@ -102,12 +102,12 @@ int magnetic_encoder_main(void)
     USART_send_byte(USART3, '\n');
     USART_send_byte(USART3, '\r');
 
-    // //If NACK end program
-    // if (I2C2_Read_ISR(1) == 0)
-    // {
-    //     USART_send_string(USART3, "ERROR NACK 1");
-    //     return;
-    // }
+    //If NACK end program
+    if (I2C2_Read_ISR(1) == 0)
+    {
+        USART_send_string(USART3, "ERROR NACK 1");
+        return;
+    }
 
     
     while((I2C2->ISR & (1 << 6)) == 0);
