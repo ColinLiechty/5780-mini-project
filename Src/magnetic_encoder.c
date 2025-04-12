@@ -15,10 +15,21 @@ int magnetic_encoder_main(void)
     
     init_i2c();
     HAL_GPIO_WritePin(GPIOC, GPIO_PIN_6 | GPIO_PIN_7 | GPIO_PIN_8 | GPIO_PIN_9, 0);
-    uint8_t writtenData[2] = {0x0B, 0x0B};
-    write_i2c(writtenData, 0x69, 1);
-   
-    while(1);
+    uint8_t writtenData[2] = {0x0B};
+    write_i2c(writtenData, 0x36, 1);
+    uint8_t status = read_i2c(0x36);
+
+    while(1){
+        uint8_t writtenData[2] = {0x0B};
+        write_i2c(writtenData, 0x36, 1);
+        uint8_t status = read_i2c(0x36);
+        if(status & 0x08) HAL_GPIO_WritePin(GPIOC, GPIO_PIN_6,1);
+            else HAL_GPIO_WritePin(GPIOC, GPIO_PIN_6,0);
+        if(status & 0x10) HAL_GPIO_WritePin(GPIOC, GPIO_PIN_7,1);
+            else HAL_GPIO_WritePin(GPIOC, GPIO_PIN_7, 0);
+        if(status & 0x20) HAL_GPIO_WritePin(GPIOC, GPIO_PIN_8, 1);
+        else HAL_GPIO_WritePin(GPIOC, GPIO_PIN_8, 0);
+    }
     
     
     //HAL_Init();
@@ -369,6 +380,7 @@ uint8_t write_i2c(uint8_t *sent_dat, uint8_t sent_addr, uint8_t num_bytes)
     {
     }
     I2C2->ISR &= ~(I2C_ISR_TC_Msk);
+    //HAL_GPIO_WritePin(GPIOC, GPIO_PIN_6, 1);
     return 0;
 
     
