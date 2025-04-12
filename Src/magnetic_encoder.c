@@ -10,6 +10,7 @@ uint8_t I2C_Read();
 void setup_USART(void);
 void printR(char* comment, u_int32_t reg);
 void printD(char* comment, int32_t numb);
+void My_HAL_GPIO_AF(GPIO_TypeDef  *GPIOx, uint16_t pin, uint16_t mode);
 
 
 int magnetic_encoder_main(void)
@@ -31,10 +32,10 @@ int magnetic_encoder_main(void)
     HAL_GPIO_Init(GPIOC, &initStrLED);
 
     //initalize I2C SCL and SDA
-    GPIO_InitTypeDef initStrSDA = {GPIO_PIN_11, GPIO_MODE_AF_OD, GPIO_AF1_I2C2};
+    GPIO_InitTypeDef initStrSDA = {GPIO_PIN_11, GPIO_MODE_AF_OD};
     HAL_GPIO_Init(GPIOB, &initStrSDA);
 
-    GPIO_InitTypeDef initStrSCL = {GPIO_PIN_13, GPIO_MODE_AF_OD, GPIO_AF5_I2C2};
+    GPIO_InitTypeDef initStrSCL = {GPIO_PIN_13, GPIO_MODE_AF_OD};
     HAL_GPIO_Init(GPIOB, &initStrSCL);
 
     GPIO_InitTypeDef initStr1 = {GPIO_PIN_14, GPIO_MODE_OUTPUT_PP};
@@ -46,6 +47,8 @@ int magnetic_encoder_main(void)
     HAL_GPIO_WritePin(GPIOB, GPIO_PIN_14, GPIO_PIN_SET);
     HAL_GPIO_WritePin(GPIOC, GPIO_PIN_0, GPIO_PIN_SET);
 
+   My_HAL_GPIO_AF(GPIOB, 11, 1);
+   My_HAL_GPIO_AF(GPIOB, 13, 5);
 
     //setup USART for debugging
     setup_USART();
@@ -53,22 +56,13 @@ int magnetic_encoder_main(void)
     USART_send_string(USART3,"START");
 
 
-    I2C2->TIMINGR &= 0; //clear timing register
+    I2C2->TIMINGR = I2C2->TIMINGR & ((~I2C_TIMINGR_PRESC_Msk) | (1 << I2C_TIMINGR_PRESC_Pos));
+    I2C2->TIMINGR = I2C2->TIMINGR & ((~I2C_TIMINGR_SCLL_Msk) | (0x13 << I2C_TIMINGR_SCLL_Pos));
+    I2C2->TIMINGR = I2C2->TIMINGR & ((~I2C_TIMINGR_SCLH_Msk) | (0xF << I2C_TIMINGR_SCLH_Pos));
+    I2C2->TIMINGR = I2C2->TIMINGR & ((~I2C_TIMINGR_SDADEL_Msk) | (0x2 << I2C_TIMINGR_SDADEL_Pos));
+    I2C2->TIMINGR = I2C2->TIMINGR & ((~I2C_TIMINGR_SCLDEL_Msk) | (0x4 << I2C_TIMINGR_SCLDEL_Pos));
 
-    //set up TIMING register
-    I2C2->TIMINGR |= (0x1 << 28);
-    I2C2->TIMINGR |= 0x13;
-    I2C2->TIMINGR |= (0xF << 8);
-    I2C2->TIMINGR |= (0x2 << 16);
-    I2C2->TIMINGR |= (0x4 << 20);
-
-    I2C2->CR1 &= ~I2C_CR1_PE;     // Disable I2C2
-    I2C2->CR1 |= I2C_CR1_PE;      // Re-enable it
-    I2C2->ICR |= I2C_ICR_NACKCF   // Clear NACK
-             | I2C_ICR_STOPCF // Clear STOP
-             | I2C_ICR_BERRCF // Clear bus error just in case
-             | I2C_ICR_ARLOCF; // Arbitration lost
-    //I2C2->CR1 |= 0x1;
+    I2C2->CR1 |= 0x1;
 
     I2C2->CR2 &= ~(0x3FF); //clear SADD
     I2C2->CR2 &= ~(0xFF << 16); //clear NBYTES
@@ -205,4 +199,28 @@ void printD(char* comment, int32_t numb)
     char str[20];
     snprintf(str, sizeof(str), "%d", numb);  // Convert hex to a decimal string
     USART_send_string(USART3, ("%s %s", comment, str));
+}
+
+void My_HAL_GPIO_AF(GPIO_TypeDef  *GPIOx, uint16_t pin, uint16_t mode)
+{
+    //make sure teh mode is 0-7
+    assert(mode >= 0 && mode <= 7);
+
+    //make sure the pin is in the range of 0-15
+    assert(pin >= 0 && pin <= 15);
+
+    //make sure the GPIO passed
+    assert_param(IS_GPIO_ALL_INSTANCE(GPIOx));
+
+    if (pin <= 7)
+    {
+        GPIOx->AFR[0] &= ~(0xF << (pin * 4));  // Clear bits
+        GPIOx->AFR[0] |= (mode << (pin * 4));  //set bits
+    }
+    else
+    {
+        pin -= 8;
+        GPIOx->AFR[0] &= ~(0xF << (pin * 4));  
+        GPIOx->AFR[1] |= (mode << (pin * 4));
+    }
 }
