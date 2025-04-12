@@ -5,10 +5,10 @@ int main(void)
 {
   #if defined(CP1)
   bt_conf_main();
-  #elif defined(LAB2)
-  lab2_main();
-  #elif defined(LAB3)
-  lab3_main();
+  #elif defined(MENC)
+  magnetic_encoder_main();
+  #elif defined(TEST)
+  test_main();
   #elif defined(LAB4)
   lab4_main();
   #elif defined(LAB5)
